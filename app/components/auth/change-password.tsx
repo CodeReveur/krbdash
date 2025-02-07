@@ -56,7 +56,7 @@ const ChangePassword = ({hashed}: Props) => {
         setError("Password does not match!");
         return;
       }
-      const response = await fetch("/api/add/auth/change-password", {
+      const response = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json", // Ensure JSON format
