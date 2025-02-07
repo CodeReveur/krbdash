@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import VerifyForm from "./forgot-password";
 
 
 interface FormData {
@@ -83,7 +84,11 @@ const LoginForm = () => {
     }, 2000)
    }
 
-    
+  if(success?.includes('verify')){
+    setTimeout(() => {
+     return <VerifyForm />
+    }, 3000)
+   }
 
   return (
     <div className="min-h-screen py-5 flex items-center justify-center bg-gradient-to-r from-blue-50 to-indigo-50">
