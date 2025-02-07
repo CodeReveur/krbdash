@@ -159,6 +159,12 @@ const AddResearch: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     if (file) {
       payload.append("document", file);
     }
+    const userSession = JSON.parse(localStorage.getItem('studentSession') || '{}');
+    let session_id = "";
+    if(userSession && userSession.session_id){
+      session_id = userSession.session_id;
+      payload.append('user_id', session_id);
+    }
 
     try {
 

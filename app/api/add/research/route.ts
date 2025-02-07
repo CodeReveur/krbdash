@@ -15,6 +15,7 @@ type InstitutionRequest = {
   school: string;
   year: string;
   abstract: string;
+  user_id: string;
   document: File;
 };
 
@@ -61,13 +62,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     school: formData.get('school')?.toString() || '',
     year: formData.get('year')?.toString() || '',
     abstract: formData.get('abstract')?.toString() || '',
+    user_id: formData.get('user_id')?.toString() || '',
     document: formData.get('document') as File, // Get the document file directly
   };
 
   console.log("Received data: ", researchData); // Log the Institution data for debugging
 
   // Validate required fields
-  if (!researchData.title || !researchData.category || !researchData.researcher || !researchData.status || !researchData.school || !researchData.institution  || !researchData.year) {
+  if (!researchData.title || !researchData.category || !researchData.researcher || !researchData.status || !researchData.school || !researchData.institution  || !researchData.year || !researchData.user_id) {
     return NextResponse.json({ error: "All fields are required" }, { status: 400 });
   }
 
@@ -80,9 +82,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Insert researches into the database
     const result = await client.query(
-      `INSERT INTO researches (title, researcher, category, status, progress_status, document, year, school, institution, abstract, document_type, hashed_id, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW()) RETURNING *`,
-      [researchData.title, researchData.researcher, researchData.category, status, progress_status, document, researchData.year, researchData.school, researchData.institution, researchData.abstract, doc_type, hashId]
+      `INSERT INTO researches (title, researcher, category, status, progress_status, document, year, school, institution, abstract, document_type, hashed_id, user_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW()) RETURNING *`,
+      [researchData.title, researchData.researcher, researchData.category, status, progress_status, document, researchData.year, researchData.school, researchData.institution, researchData.abstract, doc_type, hashId, researchData.user_id]
     );
     const ResearchId = result.rows[0].id;
 
