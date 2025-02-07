@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { userAgent } from "next/server";
 import React, { useEffect, useState } from "react";
 
 interface FormData {
@@ -98,14 +99,14 @@ const ViewResearch: React.FC<ViewResearchProps> = ({ResearchId, onClose }) => {
     }
   }, [research]); // ✅ Add research as a dependency to update when it changes
 
-  const handleApprove = async (id: any) => {
-    const response = await fetch(`/api/research/approve`, {
+  const handleNotify = async (id: any,) => {
+    const response = await fetch(`/api/research/notify`, {
         method: 'PUT',
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ id: id }),
+        body: JSON.stringify({id: id}),
     });
   
     if (!response.ok) {
@@ -123,79 +124,6 @@ const ViewResearch: React.FC<ViewResearchProps> = ({ResearchId, onClose }) => {
 
   };
 
-  const handleReject = async (id: any) => {
-    const response = await fetch(`/api/research/reject`, {
-        method: 'PUT',
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ id: id }),
-    });
-  
-    if (!response.ok) {
-        let errorData;
-        try {
-            errorData = await response.json();
-        } catch (err) {
-            setError("Failed to reject. Server returned an error without JSON.");
-            return;
-        }
-        
-        setError(errorData.message || "Failed to reject");
-        return;
-    }
-
-  };
-  const handleHold = async (id: any) => {
-    const response = await fetch(`/api/research/hold`, {
-        method: 'PUT',
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ id: id }),
-    });
-  
-    if (!response.ok) {
-        let errorData;
-        try {
-            errorData = await response.json();
-        } catch (err) {
-            setError("Failed to hold. Server returned an error without JSON.");
-            return;
-        }
-        
-        setError(errorData.message || "Failed to hold");
-        return;
-    }
-
-  };
-
-  const handleDelete = async (id: any) => {
-    const response = await fetch(`/api/research/delete`, {
-        method: 'DELETE',
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ id: id }),
-    });
-  
-    if (!response.ok) {
-        let errorData;
-        try {
-            errorData = await response.json();
-        } catch (err) {
-            setError("Failed to delete Server returned an error without JSON.");
-            return;
-        }
-        
-        setError(errorData.message || "Failed to delete Order");
-        return;
-    }
-
-  };
 
   return (
     <div className="fixed flex justify-center items-center bg-slate-400 w-full h-full top-0 left-0 z-30 backdrop-blur-sm bg-opacity-40">
@@ -210,10 +138,7 @@ const ViewResearch: React.FC<ViewResearchProps> = ({ResearchId, onClose }) => {
            <span className="text-2xl text-slate-700 font-medium">{truncateText(research?.title ?? "" , 40)} </span> 
           </div>
           <div className="space-x-3">
-            <button className="border border-red-600 py-[6px] px-10 rounded-md text-sm bg-red-400 text-red-50 text-center" onClick={() => {handleDelete(research?.hashed_id); onClose()}}>Delete</button>
-            <button className="border border-blue-800 py-[6px] px-6 rounded-md text-sm bg-blue-500 text-white text-center" onClick={() => {handleApprove(research?.hashed_id);}}>Publish</button>
-            <button className="border border-amber-800 py-[6px] px-6 rounded-md text-sm bg-amber-900 text-white text-center" onClick={() => {handleReject(research?.hashed_id);}}>Reject</button>
-            <button className="border border-orange-300 py-[6px] px-6 rounded-md text-sm text-orange-500 text-center" onClick={() => {handleHold(research?.hashed_id);}}>Hold</button>
+            <button className="border border-teal-800 py-[6px] px-6 rounded-md text-sm bg-teal-500 text-white text-center" onClick={() => {handleNotify(research?.hashed_id);}}>Notify supervisor</button>
           </div>
         </h4>
         <div className="flex space-x-4 px-3">
