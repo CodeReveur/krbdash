@@ -85,7 +85,7 @@ const ChangePassword = ({hashed}: Props) => {
 
     if(success?.includes('success')){
      setTimeout(() => {
-      router.push('/auth/login');
+      router.push('/');
      }, 2000)
     }
 
