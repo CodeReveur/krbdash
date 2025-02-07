@@ -47,6 +47,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const result = await client.query(sql, [login]);
         const user = result.rows[0];
 
+        
+        if (user.status === "Pending" || user.status === "Unverified") {
+            return NextResponse.json({ message: "Your account is not verified. Please verify your account." }, { status: 403 });
+        }
         // Verify password
         if (!user || (await hashPassword(password)) !== user.password) {
             return NextResponse.json({ message: "Invalid login credentials." }, { status: 400 });
@@ -55,9 +59,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         // Enforce status rules
         if (user.status === "Locked") {
             return NextResponse.json({ message: "Your account is locked. Please contact your supervisor." }, { status: 403 });
-        } else if (user.status === "Pending" || user.status === "Unverified") {
-            return NextResponse.json({ message: "Your account is not verified. Please verify your account." }, { status: 403 });
-        } else if (user.status !== "Active") {
+        }  else if (user.status !== "Active") {
             return NextResponse.json({ message: "Unauthorized access. Only active students can log in." }, { status: 403 });
         }
 
