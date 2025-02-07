@@ -6,9 +6,9 @@ import client from "@/app/api/utils/db"; // Adjust the path as needed
 export async function POST(req: Request) {
   try {
     const formData = await req.json();
-    const { sessionId } = formData;
+    const { session_id } = formData;
 
-    if (!sessionId) {
+    if (!session_id) {
       return NextResponse.json({ message: "Unauthorized access" }, { status: 401 });
     }
 
@@ -49,9 +49,9 @@ export async function POST(req: Request) {
     `;
 
     // Execute queries
-    const totalUploadsData = await client.query(queryTotalUploads, [sessionId]);
-    const currentResult = await client.query(query, [sessionId, currentMonth, currentYear]);
-    const lastMonthResult = await client.query(lastMonthQuery, [sessionId, lastMonth, lastMonthYear]);
+    const totalUploadsData = await client.query(queryTotalUploads, [session_id]);
+    const currentResult = await client.query(query, [session_id, currentMonth, currentYear]);
+    const lastMonthResult = await client.query(lastMonthQuery, [session_id, lastMonth, lastMonthYear]);
 
     const totalUploads = totalUploadsData.rows[0]?.total_uploads || 1;
     const current = currentResult.rows[0];

@@ -27,9 +27,9 @@ interface Analytics {
   total_downloads: number,
   percentage_change: {
     total_researches: number,
-    pending_researches: number,
+    pending_researches: number | 0,
     total_rejected: number,
-    total_onhold: number,
+    total_onhold: number | 0,
     total_published: number,
     total_downloads: number,
   }
@@ -58,7 +58,7 @@ const Header = ({onAddResearchClick}: ResearchHeaderProps) => {
     const fetchResearches = async () => {
       try {
         const response = await fetch(`/api/analytics/researches`, { 
-          method: 'GET',
+          method: 'POST',
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
@@ -131,7 +131,7 @@ const Header = ({onAddResearchClick}: ResearchHeaderProps) => {
             <i className="bi bi-three-dots"></i>
           </div>
           <div className="p-2 flex items-center">
-            <div className="text-3xl text-slate-600"> {Number(analytics?.total_onhold) + Number(analytics?.pending_researches)} </div>
+            <div className="text-3xl text-slate-600"> {(Number(analytics?.total_onhold) + Number(analytics?.pending_researches))} </div>
             <div className={`mx-1 ${(Number(analytics?.percentage_change.total_onhold) + Number(analytics?.percentage_change.pending_researches)) > 0 ? 'bg-teal-200 text-teal-600 border-teal-300' : 'bg-red-100 text-red-500 border-red-200'} px-[2px] text-xs border  rounded text-center`}>
               <i className="bi bi-caret-up-fill mr-[2px] text-xs"></i> {Number(analytics?.percentage_change.total_onhold) + Number(analytics?.percentage_change.pending_researches)}%
             </div>
@@ -293,7 +293,7 @@ const handleReview = async (id: string) => {
     }
     const fetchResearches = async () => {
       try {
-        const response = await fetch(`/api/research?sort=${sort}&search=${search}&filter=${filter}session_id=${session_id}`);
+        const response = await fetch(`/api/research?sort=${sort}&search=${search}&filter=${filter}&session_id=${session_id}`);
         if (!response.ok) throw new Error("Failed to fetch researches");
         const data = await response.json();
         setResearches(data);
