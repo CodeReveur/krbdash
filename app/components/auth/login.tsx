@@ -84,10 +84,8 @@ const LoginForm = () => {
     }, 2000)
    }
 
-  if(success?.includes('verify')){
-    setTimeout(() => {
+  if(error?.includes("not verified")){
      return <VerifyForm />
-    }, 3000)
    }
 
   return (
