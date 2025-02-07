@@ -9,8 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@getbrevo/brevo": "^2.2.0",
     "axios": "^1.7.9",
     "bootstrap-icons": "^1.11.3",
+    "cloudinary": "^2.5.1",
     "next": "15.1.6",
     "pg": "^8.13.1",
     "quill": "^2.0.3",
