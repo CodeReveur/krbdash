@@ -1,7 +1,5 @@
 export const dynamic = "force-dynamic";
 
-
-
 import { NextResponse } from "next/server";
 import client from "../utils/db"; // Adjust the path as needed
 
@@ -13,6 +11,11 @@ export async function GET(req: Request) {
     const filter = searchParams.get("filter");
     const search = searchParams.get("search");
     const sort = searchParams.get("sort");
+    const sessionId = searchParams.get("session_id"); // Get session_id
+
+    if (!sessionId) {
+      return NextResponse.json({ message: "Unauthorized access" }, { status: 401 });
+    }
 
     let query = `SELECT 
       r.id,
@@ -33,11 +36,11 @@ export async function GET(req: Request) {
       FROM researches r
       JOIN institutions i ON CAST(i.id AS TEXT) = r.institution
       JOIN schools s ON CAST(s.id AS TEXT) = r.school
-      `;
-   
-    const params: any[] = [];
+      WHERE r.user_id = $1`; // Filter by user_id (session_id)
 
+    const params: any[] = [sessionId];
     const conditions = [];
+
     if (filter) {
       conditions.push(` r.status = $${params.length + 1}`);
       params.push(filter);
@@ -48,7 +51,7 @@ export async function GET(req: Request) {
     }
 
     if (conditions.length) {
-      query += ` WHERE ${conditions.join(" AND ")}`;
+      query += ` AND ${conditions.join(" AND ")}`;
     }
 
     // Sorting
@@ -57,7 +60,7 @@ export async function GET(req: Request) {
         query += " ORDER BY CAST(r.created_at AS DATE) DESC";
       } else if (sort === "old") {
         query += " ORDER BY CAST(r.created_at AS DATE) ASC";
-      }else if (sort === "title") {
+      } else if (sort === "title") {
         query += " ORDER BY r.title ASC";
       }
     } else {

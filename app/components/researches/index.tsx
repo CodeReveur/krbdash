@@ -42,13 +42,28 @@ interface ResearchListProprs{
 
 
 const Header = ({onAddResearchClick}: ResearchHeaderProps) => {
-
+  
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+
+
+  
+
   // Fetch Researches
   useEffect(() => {
+    const userSession = JSON.parse(localStorage.getItem('studentSession') || '{}');
+    let session_id = "";
+    if(userSession && userSession.session_id){
+      session_id = userSession.session_id;
+    }
     const fetchResearches = async () => {
       try {
-        const response = await fetch(`/api/analytics/researches`);
+        const response = await fetch(`/api/analytics/researches`, { 
+          method: 'GET',
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ session_id: session_id }),});
         if (!response.ok) throw new Error("Failed to fetch researches");
         const data = await response.json();
         setAnalytics(data);
@@ -165,12 +180,13 @@ const Header = ({onAddResearchClick}: ResearchHeaderProps) => {
 }
 
 const buttons = [
-  {"id":1, "name": "all"},
+  {"id":1, "name": ""},
   {"id":3, "name": "Rejected"},
   {"id":4, "name": "On hold"},
   {"id":5, "name": "Under review"},
   {"id":7, "name": "Published"},
   {"id":8, "name": "Draft"},
+  {"id":8, "name": "Pending"},
 ];
 
 const timeAgo = (createdDate: string): string => {
@@ -270,9 +286,14 @@ const handleReview = async (id: string) => {
 
   // Fetch Researches
   useEffect(() => {
+    const userSession = JSON.parse(localStorage.getItem('studentSession') || '{}');
+    let session_id = "";
+    if(userSession && userSession.session_id){
+      session_id = userSession.session_id;
+    }
     const fetchResearches = async () => {
       try {
-        const response = await fetch(`/api/research?sort=${sort}&search=${search}&filter=${filter}`);
+        const response = await fetch(`/api/research?sort=${sort}&search=${search}&filter=${filter}session_id=${session_id}`);
         if (!response.ok) throw new Error("Failed to fetch researches");
         const data = await response.json();
         setResearches(data);

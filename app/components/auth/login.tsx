@@ -149,7 +149,7 @@ const LoginForm = () => {
              </button>
             </div>
             <div className="relative flex flex-col justify-center space-y-1 text-center">
-              <Link href={"auth/forgot-password"} className="text-sm text-teal-600">Forgot password?</Link>
+              <Link href={"/auth/forgot-password"} className="text-sm text-teal-600">Forgot password?</Link>
               <Link href={"https://kresearch.vercel.app/w-page/auth/join"} className="text-sm text-teal-600"><span className="text-slate-500">Not a member?</span> Join</Link>
             </div>
         </form>
