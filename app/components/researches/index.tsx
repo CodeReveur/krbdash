@@ -315,7 +315,7 @@ const handleReview = async (id: string) => {
       <div className="flex justify-between my-1 items-center">
         <div className="flex items-center space-x-1 space-y-1">
           {buttons.map((btn) => (
-            <button key={btn.id}  className={`${activeId === btn.id ? 'bg-slate-200 border-slate-400 ' : ''} px-2 py-1 capitalize border rounded-md text-slate-500 font-normal text-sm`} onClick={() => {handleActive(btn.id); handleFilter(btn.name)}}>{btn.name}</button>
+            <button key={btn.id}  className={`${activeId === btn.id ? 'bg-slate-200 border-slate-400 ' : ''} px-2 py-1 capitalize border rounded-md text-slate-500 font-normal text-sm`} onClick={() => {handleActive(btn.id); handleFilter(btn.name)}}>{btn.name === "" ? 'All' : btn.name}</button>
           ))}
         </div>
 
