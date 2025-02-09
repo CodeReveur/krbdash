@@ -26,7 +26,7 @@ export async function GET(req: Request) {
       c.name AS college
       FROM schools s
       JOIN colleges c ON s.id = c.id
-      JOIN institutions i ON c.id = i.id 
+      JOIN institutions i ON CAST(i.id AS TEXT) = c.institution 
       `;
    
     const params: any[] = [];

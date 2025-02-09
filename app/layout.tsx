@@ -54,6 +54,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     setPageTitle(newPage);
   };
  const hide = hideNav(path);
+ 
   return (
     <html lang="en">
       <head>
