@@ -77,7 +77,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Upload the document to Cloudinary
     const document = await uploadDocumentToCloudinary(researchData.document, researchData.title);
     const doc_type = researchData.document.type;
-    const status = "Draft";
+    const status = "Pending";
     const progress_status = researchData.status;
 
     // Insert researches into the database

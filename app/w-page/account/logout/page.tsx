@@ -1,7 +1,6 @@
 "use client"; // Ensure this is at the top of the file
 
 import React, { useEffect } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
 const Logout: React.FC = () => {
