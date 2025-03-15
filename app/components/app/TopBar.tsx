@@ -25,6 +25,7 @@ const TopBar = ({page}: TopBarProps) => {
           };
      loadUserSession();
    }, []);
+  
     return (
        <div className="w-full flex justify-between items-center transition-transform duration-300 ease-in-out">
          <h1 className="text-2xl ">{page}</h1>
@@ -39,7 +40,8 @@ const TopBar = ({page}: TopBarProps) => {
             </div>
             <div className="flex mr-3 p-1 border rounded-full w-10 h-10 items-center justify-center">
                 {sessionData?.profile ? (
-                    <img src={sessionData.profile} alt="" className="w-full h-full object-cover rounded-full"/>
+                  
+                    <img src={sessionData.profile} alt={"profile"} className="w-full h-full object-cover rounded-full"/>
                 ): (
                     <i className="bi bi-person text-xl text-slate-500"></i>
                 )}

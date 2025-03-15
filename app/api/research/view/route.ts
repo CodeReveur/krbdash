@@ -31,7 +31,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       r.category,
       r.hashed_id,
       r.created_at,
+      r.approval_requested,
       i.name AS institute,
+      i.id AS institute_if,
+      s.id AS school_id,
       s.name AS school
       FROM researches r
       JOIN institutions i ON CAST(i.id AS TEXT) = r.institution

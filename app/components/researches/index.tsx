@@ -16,6 +16,7 @@ interface Research {
   progress_status: string;//ie. ongoing, completed
   created_at: string;
   hashed_id: string;
+  approval_requested: string;
 }
 
 interface Analytics {
@@ -24,14 +25,14 @@ interface Analytics {
   total_rejected: number,
   total_onhold: number,
   total_published: number,
-  total_downloads: number,
+  total_approved: number,
   percentage_change: {
     total_researches: number,
     pending_researches: number | 0,
     total_rejected: number,
     total_onhold: number | 0,
     total_published: number,
-    total_downloads: number,
+    total_approved: number,
   }
 }
 
@@ -52,9 +53,10 @@ const Header = ({onAddResearchClick}: ResearchHeaderProps) => {
   useEffect(() => {
     const userSession = JSON.parse(localStorage.getItem('studentSession') || '{}');
     let session_id = "";
-    if(userSession && userSession.session_id){
-      session_id = userSession.session_id;
+    if(userSession && userSession.id){
+      session_id = userSession.id;
     }
+   
     const fetchResearches = async () => {
       try {
         const response = await fetch(`/api/analytics/researches`, { 
@@ -111,13 +113,13 @@ const Header = ({onAddResearchClick}: ResearchHeaderProps) => {
           <div className="flex p-4 justify-between items-center py-2 border-b">
             <h4>
               <i className="bi bi-search text-sm border border-teal-300 px-1 py-[2px] bg-teal-100 text-teal-600 rounded-md mr-3"></i>
-              <span className="font-normal">Downloads</span>
+              <span className="font-normal">Approved</span>
             </h4>
             <i className="bi bi-three-dots"></i>
           </div>
           <div className="p-2 flex items-center">
-            <div className="text-3xl text-slate-600"> {analytics?.total_downloads} </div>
-            <div className={`mx-1 ${Number(analytics?.percentage_change.total_downloads) > 0 ? 'bg-teal-200 text-teal-600 border-teal-300' : 'bg-red-100 text-red-500 border-red-200'} px-[2px] text-xs border  rounded text-center`}><i className="bi bi-caret-up-fill mr-[2px] text-xs"></i> {analytics?.percentage_change.total_downloads}%</div>
+            <div className="text-3xl text-slate-600"> {analytics?.total_approved} </div>
+            <div className={`mx-1 ${Number(analytics?.percentage_change.total_approved) > 0 ? 'bg-teal-200 text-teal-600 border-teal-300' : 'bg-red-100 text-red-500 border-red-200'} px-[2px] text-xs border  rounded text-center`}><i className="bi bi-caret-up-fill mr-[2px] text-xs"></i> {analytics?.percentage_change.total_approved}%</div>
             <div className="text-xs text-slate-400 mx-[2px]"> from last month</div>
           </div>
         </div>
@@ -181,12 +183,13 @@ const Header = ({onAddResearchClick}: ResearchHeaderProps) => {
 
 const buttons = [
   {"id":1, "name": ""},
-  {"id":3, "name": "Rejected"},
+  {"id":2, "name": "Rejected"},
+  {"id":3, "name": "Approved"},
   {"id":4, "name": "On hold"},
   {"id":5, "name": "Under review"},
   {"id":7, "name": "Published"},
   {"id":8, "name": "Draft"},
-  {"id":8, "name": "Pending"},
+  {"id":9, "name": "Pending"},
 ];
 
 const timeAgo = (createdDate: string): string => {
@@ -253,43 +256,24 @@ const handleFilter = (text: string) => {
     const { value } = e.target;
     setSearch((value));
   };
-const handleReview = async (id: string) => {
-  const response = await fetch(`/api/research/review`, {
-      method: 'PUT',
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ id: id }),
-  });
 
-  if (!response.ok) {
-      let errorData;
-      try {
-          errorData = await response.json();
-      } catch (err) {
-          setError("Failed to approve Order: Server returned an error without JSON.");
-          return;
+    // Function to clear messages after a few seconds
+    useEffect(() => {
+      if (error || success) {
+        const timer = setTimeout(() => {
+          setError(null);
+          setSuccess(null);
+        }, 10000); // Hide after 4 seconds
+        return () => clearTimeout(timer);
       }
-      
-      setError(errorData.message || "Failed to approve Order");
-      return;
-  }
-
-  // Update the Orders list to set the approved status
-  setResearches((prevResearches) => 
-      prevResearches.map(Research => 
-          Research.hashed_id === id ? { ...Research, status: 'Under review' } : Research
-      )
-  );
-};
+    }, [error, success]);
 
   // Fetch Researches
   useEffect(() => {
     const userSession = JSON.parse(localStorage.getItem('studentSession') || '{}');
     let session_id = "";
-    if(userSession && userSession.session_id){
-      session_id = userSession.session_id;
+    if(userSession && userSession.id){
+      session_id = userSession.id;
     }
     const fetchResearches = async () => {
       try {
@@ -344,7 +328,8 @@ const handleReview = async (id: string) => {
           <th className="py-2 px-2 font-normal">Title</th>
           <th className="py-2 px-2 font-normal">Researcher</th>
           <th className="py-2 px-2 font-normal">Year</th>
-          <th className="py-2 px-2 font-normal">Material Status</th>
+          <th className="py-2 px-2 font-normal">Progress Status</th>
+          <th className="py-2 px-2 font-normal">Request</th>
           <th className="py-2 px-2 font-normal">Uploaded at</th>
           <th className="py-2 px-2 font-normal">Actions</th>
         </thead>
@@ -354,19 +339,23 @@ const handleReview = async (id: string) => {
             <td className="py-2 px-2"><input type="checkbox" name="selected" id="selected" value={research.id} className="text-slate-500"/></td>
             <td className="py-2 px-2 text-nowrap">
               <span className={`
-                ${research.status === 'Published' || research.status === 'Approved' ? 'bg-green-100 text-green-600 border-green-300 '
+                ${research.status === 'Published' || research.status === 'Approved' 
+                ? 'bg-green-100 text-green-600 border-green-300 '
                 : research.status === 'Under review' || research.status === 'On hold' 
-                ? 'bg-yellow-100 text-yellow-600 border-yellow-300' 
+                ? 'bg-sky-100 text-sky-600 border-sky-300' 
                 : research.status === 'Rejected' 
                 ? 'bg-amber-800 bg-opacity-30 text-amber-900 border-amber-800'
+                : research.status === 'Pending' 
+                ? 'bg-yellow-500 bg-opacity-30 text-yellow-500 border-yellow-500'
                 : 'bg-slate-100 text-slate-600 border-slate-300 '
                 } rounded px-1 border`}>{research.status}</span></td>
             <td className="py-2 px-2">{research.title}</td>
             <td className="py-2 px-2">{research.researcher}</td>
             <td className="py-2 px-2">{research.year}</td>
-            <td className="py-2 px-2">{research.progress_status}</td>
+            <td className="py-2 px-2 capitalize">{research.progress_status}</td>
+            <td className="py-2 px-2">{research.approval_requested}</td>
             <td className="py-2 px-2">{timeAgo(research.created_at)}</td>
-            <td className="py-2 px-6 text-center relative">
+            <td className="py-2 px-2 text-center relative">
               <i
                 className="bi bi-three-dots cursor-pointer text-xl"
                 onClick={() => toggleDropdown(research.id)}
@@ -378,7 +367,6 @@ const handleReview = async (id: string) => {
                       className="px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center"
                       onClick={() => {
                         onResearchView(research.hashed_id); // Assign the Order
-                        handleReview(research.hashed_id); // 
                         toggleDropdown(research.id); // Close the dropdown
                       }}
                     >

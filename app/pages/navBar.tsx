@@ -26,11 +26,11 @@ const NavBar = ({ menuCollapsed, toggleMenu, onNavigate }: NavBarProps) => {
     { name: "Dashboard", url: "/", icon: "bi bi-grid" },
     { name: "Researches", url: "/w-page/researches", icon: "bi bi-search" },
     { name: "Comments", url: "/w-page/comments", icon: "bi bi-chat-dots" },
+    { name: "Requests", url: "/w-page/requests", icon: "bi bi-hourglass-split" },
   ];
  
   const others = [
     { name: "Account", url: "/w-page/account", icon: "bi bi-person" },
-    { name: "Feedback", url: "/w-page/account/feedback", icon: "bi bi-chat" },
     { name: "Log out", url: "/w-page/account/logout", icon: "bi bi-box-arrow-left" },
   ];
  
@@ -44,12 +44,13 @@ const NavBar = ({ menuCollapsed, toggleMenu, onNavigate }: NavBarProps) => {
             <Link
               key={index}
               href={tab.url}
+              title={tab.name}
               onClick={() => onNavigate(tab.name)} // Update the page name on navigation
               className={`flex items-center ${menuCollapsed ? 'p-2 justify-center' : 'py-2 px-3' } text-gray-50 text-sm rounded-md font-normal hover:bg-slate-100 hover:text-gray-900 transition-all duration-200 ${
                 pathname === tab.url ? 'bg-slate-300 text-gray-900' : ''
               }`}
             >
-              <i className={`${tab.icon} mr-2 text-xl transition-all duration-300 hover:text-sky-500`}></i>
+              <i className={`${tab.icon} ${menuCollapsed ? '': 'mr-2'} text-xl transition-all duration-300 hover:text-sky-500`}></i>
               <span className={`${menuCollapsed ? 'hidden ' : 'block sm:block md:block lg:block'} transition-all duration-300 `}>
                 {tab.name}
               </span>
@@ -63,12 +64,13 @@ const NavBar = ({ menuCollapsed, toggleMenu, onNavigate }: NavBarProps) => {
             <Link
               key={index}
               href={tab.url}
+              title={tab.name}
               onClick={() => onNavigate(tab.name)} // Update the page name on navigation
               className={`flex items-center ${menuCollapsed ? 'p-2 justify-center' : 'py-2 px-3' } text-gray-50 text-sm rounded-md font-normal hover:bg-slate-100 hover:text-gray-900 transition-all duration-200 ${
                 pathname === tab.url ? 'bg-slate-300 text-gray-900' : ''
               }`}
             >
-              <i className={`${tab.icon} mr-2 text-xl transition-all duration-300 hover:text-sky-500`}></i>
+              <i className={`${tab.icon} ${menuCollapsed ? '': 'mr-2'} text-xl transition-all duration-300 hover:text-sky-500`}></i>
               <span className={`${menuCollapsed ? 'hidden ' : 'block sm:block md:block lg:block'} transition-all duration-300 `}>
                 {tab.name}
               </span>

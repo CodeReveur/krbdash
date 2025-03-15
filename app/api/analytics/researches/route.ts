@@ -27,6 +27,7 @@ export async function POST(req: Request) {
         COUNT(*) AS total_researches,
         SUM(CASE WHEN r.status = 'Pending' OR r.status = 'Under review' THEN 1 ELSE 0 END) AS pending_researches,
         SUM(CASE WHEN r.status = 'Rejected' THEN 1 ELSE 0 END) AS total_rejected,
+        SUM(CASE WHEN r.status = 'Approved' THEN 1 ELSE 0 END) AS total_approved,
         SUM(CASE WHEN r.status = 'On hold' THEN 1 ELSE 0 END) AS total_onhold,
         SUM(CASE WHEN r.status = 'Published' OR r.status ='Approved' THEN 1 ELSE 0 END) AS total_published,
         SUM(r.downloads) AS total_downloads
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
         COUNT(*) AS total_researches,
         SUM(CASE WHEN r.status = 'Pending' OR r.status = 'Under review' THEN 1 ELSE 0 END) AS pending_researches,
         SUM(CASE WHEN r.status = 'Rejected' THEN 1 ELSE 0 END) AS total_rejected,
+        SUM(CASE WHEN r.status = 'Approved' THEN 1 ELSE 0 END) AS total_approved,
         SUM(CASE WHEN r.status = 'On hold' THEN 1 ELSE 0 END) AS total_onhold,
         SUM(CASE WHEN r.status = 'Published' OR r.status ='Approved' THEN 1 ELSE 0 END) AS total_published,
         SUM(r.downloads) AS total_downloads
@@ -68,6 +70,7 @@ export async function POST(req: Request) {
       total_researches: current.total_researches || 0,
       pending_researches: current.pending_researches || 0,
       total_rejected: current.total_rejected || 0,
+      total_approved: current.total_approved || 0,
       total_onhold: current.total_onhold || 0,
       total_published: current.total_published || 0,
       total_downloads: current.total_downloads || 0,
@@ -75,6 +78,7 @@ export async function POST(req: Request) {
         total_researches: calculatePercentage(current.total_researches, previous.total_researches),
         pending_researches: calculatePercentage(current.pending_researches, previous.pending_researches),
         total_rejected: calculatePercentage(current.total_rejected, previous.total_rejected),
+        total_approved: calculatePercentage(current.total_approved, previous.total_approved),
         total_onhold: calculatePercentage(current.total_onhold, previous.total_onhold),
         total_published: calculatePercentage(current.total_published, previous.total_published),
         total_downloads: calculatePercentage(current.total_downloads, previous.total_downloads),

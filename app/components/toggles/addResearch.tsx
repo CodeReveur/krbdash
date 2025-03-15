@@ -1,8 +1,20 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import "quill/dist/quill.snow.css";
+import Preloader from "../app/buttonPreloader";
+import AlertNotification from "../app/notify";
 
 const researchTopics = [
+  "Health Research",
+  "Agriculture and Environmental Research",
+  "Education and Social Sciences",
+  "Energy and Infrastructure",
+  "Information and Communication Technology (ICT)",
+  "Industry and Manufacturing",
+  "Natural and Basic Sciences",
+  "Tourism and Cultural Heritage",
+  "Policy and Governance",
+  "Innovation and Technology Transfer",
   "Pest surveillance and management",
   "Sustainable farming practices",
   "Crop diversification",
@@ -75,8 +87,22 @@ const AddResearch: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+   
+  
+  // Function to clear messages after a few seconds
+    useEffect(() => {
+      if (error || success) {
+        const timer = setTimeout(() => {
+          setError(null);
+          setSuccess(null);
+        }, 10000); // Hide after 4 seconds
+        return () => clearTimeout(timer);
+      }
+    }, [error, success]);
 
+    
   useEffect(() => {
     let quillInstance: any = null;
 
@@ -151,6 +177,7 @@ const AddResearch: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     const payload = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
@@ -162,7 +189,7 @@ const AddResearch: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const userSession = JSON.parse(localStorage.getItem('studentSession') || '{}');
     let session_id = "";
     if(userSession && userSession.session_id){
-      session_id = userSession.session_id;
+      session_id = userSession.id;
       payload.append('user_id', session_id);
     }
 
@@ -174,7 +201,7 @@ const AddResearch: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       });
 
       if (response.ok) {
-        setSuccess(true);
+        setSuccess("Added successfully");
         setFormData({
           title: "",
           researcher: "",
@@ -186,10 +213,12 @@ const AddResearch: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           abstract: "",
         });
         setFile(null);
-        onClose();
+        document.location.reload();
+        setLoading(false);
       } else {
-        const error = await response.text();
-        setError(`Submission failed. ${error}`);
+        const error = await response.json();
+        setError(`Adding failed. ${error.message}`);
+        setLoading(false);
       }
     } catch (error) {
       setError(`Submission failed. ${(error as Error).message}`);
@@ -224,16 +253,11 @@ const AddResearch: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         onClick={onClose}
         className="bi bi-x absolute right-4 px-[6px] py-[2px] border top-7 text-2xl font-bold cursor-pointer text-teal-50 bg-teal-500 border-teal-300 hover:bg-teal-200 hover:border rounded-full"
       ></i>
+      {error && <AlertNotification message={error} type="error" />}
+      {success && <AlertNotification message={success} type="success" />}
       <div className="w-3/5 bg-white rounded-lg px-5 py-3">
         <h4 className="text-center text-2xl mb-5 font-semibold text-teal-600">Upload Research Material </h4>
         <form className="space-y-6 px-8" onSubmit={handleSubmit}>
-        {success || error && (
-          <div
-          className={`${success ? 'bg-green-100 text-green-500 border-green-300' : 'bg-red-100 text-red-500 border-red-300'} p-4 rounded-md`}
-          >
-            {success ? success : error ? error : ""}
-          </div>
-        )}
 
 
           <div className="grid grid-cols-2 gap-4">
@@ -483,15 +507,17 @@ const AddResearch: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           
           
           </div>
-           {/* Submit Button */}
-           <div className="text-center">
-            <button
-              type="submit"
-              className="w-[120px] border border-teal-400 text-teal-500 py-2 rounded-md hover:bg-teal-100 transition-all duration-300"
-            >
-              Add
-            </button>
-          </div>
+            {/* Submit Button */}
+            <div className="text-center flex justify-center">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-[150px] flex items-center justify-center space-x-2 border border-teal-400 text-teal-500 py-2 rounded-md hover:bg-teal-100 transition-all duration-300"
+              >
+                {loading && <Preloader />}
+                Add
+              </button>
+            </div>
         </form>
       
       </div>

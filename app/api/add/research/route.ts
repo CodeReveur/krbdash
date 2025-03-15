@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import client from "../../utils/db";
-const cloudinary = require('../../utils/cloudinary');
-const fs = require('fs');
-const path = require('path');
-const os = require('os'); // Import os to get the temporary directory
+import uploadDocumentToSupabase from "../../utils/supabase";
 
 // Define types for the Institution request
 type InstitutionRequest = {
@@ -18,28 +15,6 @@ type InstitutionRequest = {
   user_id: string;
   document: File;
 };
-
-// Helper to upload document to Cloudinary
-async function uploadDocumentToCloudinary(file: File, title: string): Promise<string> {
-  const tempDir = os.tmpdir(); // Use OS temporary directory
-  const documentPath = path.join(tempDir, file.name); // Save the file with its original title
-  const buffer = await file.arrayBuffer(); // Get the file's buffer
-  fs.writeFileSync(documentPath, Buffer.from(buffer)); // Write the buffer to a file
-
-  // Convert title to a valid Cloudinary public_id format
-  const publicId = title.replace(/\s+/g, "_").toLowerCase();// Replace spaces with underscores
-
-  // Upload the document to Cloudinary
-  const uploadResult = await cloudinary.uploader.upload(documentPath, {
-    use_filename: true, // Use the specified public_id as the file name
-    folder: "institutions/researches/documents",
-    public_id: publicId, // Assign custom public_id
-    resource_type: "raw", // Ensure it's uploaded as a document, not an image
-  });
-
-  fs.unlinkSync(documentPath); // Remove the temporary file after upload
-  return uploadResult.secure_url; // Return the uploaded document's URL
-}
 
 // Helper function to hash the Institution ID
 async function hashId(id: number): Promise<string> {
@@ -74,8 +49,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    // Upload the document to Cloudinary
-    const document = await uploadDocumentToCloudinary(researchData.document, researchData.title);
+    // Upload the document to Supabase
+    const document = await uploadDocumentToSupabase(researchData.document, researchData.title);
     const doc_type = researchData.document.type;
     const status = "Pending";
     const progress_status = researchData.status;
