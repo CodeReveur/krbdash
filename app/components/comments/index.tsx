@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-interface CommentHeaderProps{
+interface CommentHeaderProps {
   onAddCommentClick: () => void;
 }
-
 
 interface Comment {
   id: number;
@@ -18,10 +17,9 @@ interface Comment {
   created_at: string;
 }
 
-interface CommentListProprs{
+interface CommentListProps {
   onCommentView: (CommentId: number) => void;
 }
-
 
 const comments: Comment[] = [
   {
@@ -85,115 +83,252 @@ const comments: Comment[] = [
   }
 ];
 
-
-
 const buttons = [
-  {"id":1, "name": "all"},
-  {"id":3, "name": "rejected"},
-  {"id":4, "name": "on hold"},
-  {"id":5, "name": "under review"},
-  {"id":7, "name": "published"},
-  {"id":8, "name": "draft"},
+  { "id": 1, "name": "all" },
+  { "id": 3, "name": "rejected" },
+  { "id": 4, "name": "on hold" },
+  { "id": 5, "name": "under review" },
+  { "id": 7, "name": "published" },
+  { "id": 8, "name": "draft" },
 ];
 
+const timeAgo = (createdDate: string): string => {
+  const now = new Date();
+  const created = new Date(createdDate);
 
+  const diffInSeconds = Math.floor((now.getTime() - created.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return `Now`;
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} minute${diffInMinutes !== 1 ? "s" : ""} ago`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) {
+    return `${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`;
+  }
+
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) {
+    return `${diffInMonths} month${diffInMonths !== 1 ? "s" : ""} ago`;
+  }
+
+  const diffInYears = Math.floor(diffInMonths / 12);
+  return `${diffInYears} year${diffInYears !== 1 ? "s" : ""} ago`;
+};
+
+const getStatusStyle = (status: string) => {
+  switch (status) {
+    case 'Visible':
+      return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+    case 'Hidden':
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+    case 'Pending Review':
+      return 'bg-teal-100 text-teal-700 border-teal-200';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+};
 
 const CommentList = () => {
-   const [activeId, setActiveId] = useState(1);
-   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
-   const [Comments, setComments] = useState<Comment[]>([]);
-   const [error, setError] = useState<string | null>(null);
-   const [success, setSuccess] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState(1);
+  const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+  const [commentsList, setCommentsList] = useState<Comment[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
- useEffect(() => {
-  setComments(comments);
- }, []);
+  const handleActive = (id: number) => {
+    setActiveId(id);
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setSearch(value);
+  };
+
+  useEffect(() => {
+    setCommentsList(comments);
+  }, []);
+
+  const filteredComments = commentsList.filter(comment =>
+    comment.comment.toLowerCase().includes(search.toLowerCase()) ||
+    comment.sender.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="border rounded-lg p-4 bg-white">
-
-     
-      {Comments.length <= 0 ? (
-
-<div className="w-full min-h-[30vh] flex items-center justify-center">
- <div className="flex flex-col justify-center items-center opacity-65">
-   <div className="img w-[150px] h-[150px]">
-    <img src="/delete.png" alt="" className="w-full h-full object-contain"/>
-   </div>
-   <i>No Commentes yet.</i>
- </div>
-</div>
-) : (
-<>
-      <div className="flex justify-between my-1 items-center border-b pb-3">
-        <h4 className="text-slate-500 text-lg">Comments</h4>
-      
-        <div className="flex items-center space-x-2">
-          <i className="bi bi-funnel text-sm border px-2 py-1 rounded-md text-slate-500 cursor-pointer border-slate-300"></i>
-          <div className="border py-1 px-2 bg-white rounded-md flex items-center">
-            <i className="bi bi-search text-slate-400"></i>
-            <input type="search" name="search" id="search" placeholder="Search ..." className="bg-transparent outline-none w-[15vw] px-3 text-sm"/>
-          </div>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 p-6">
+          <h4 className="text-white text-xl font-semibold">Research Comments</h4>
+          <p className="text-teal-100 mt-1">Manage and review all research feedback</p>
         </div>
-      </div>
-         
-      <div className="container">
-        <div className="w-full py-1 px-3">
-          <div className="flex items-center justify-between">
-            <button className="border border-teal-300 py-1 px-5 text-sm rounded">Previous</button>
-            <button className="border border-teal-300 py-1 px-5 text-sm rounded">Next</button>
-          </div>
-          <div className="flex items-center px-1 py-3 space-x-2 ">
-            <h4 className="text-sm text-slate-500">Research: </h4>
-            <div className="font-medium text-lg">The Impact of AI on Modern Education</div>
-          </div>
-        </div>
-        {/** comments */}
-        <div className="w-full p-2">
 
-          <div className="comments space-y-2">
-          {Comments.map((comment) => (
-            <div key={comment.id} className="comment  border py-2 px-4 rounded-md">
-              <div className="flex items-center spaxe-x-2 text-sm">
-                <div className="flex justify-center items-center w-9 h-9 rounded-full border border-slate-300 p-1">
-                  <i className="bi bi-person text-xl text-slate-500"></i>
-                </div> 
-                <h1 className="font-medium text-slate-500 mx-2">{comment.sender}</h1>
-                <div className="date text-xs text-slate-300">
-                  . {comment.created_at}
+        <div className="p-6">
+          {/* Filter Controls */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 mb-6">
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              {buttons.map((btn) => (
+                <button 
+                  key={btn.id}  
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 capitalize ${
+                    activeId === btn.id 
+                      ? 'bg-teal-100 text-teal-700 border-2 border-teal-300 shadow-md' 
+                      : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                  }`} 
+                  onClick={() => handleActive(btn.id)}
+                >
+                  {btn.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Search and Filter */}
+            <div className="flex items-center space-x-3">
+              <button className="p-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                <i className="bi bi-funnel"></i>
+              </button>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i className="bi bi-search text-gray-400"></i>
+                </div>
+                <input 
+                  type="search" 
+                  name="search" 
+                  id="search" 
+                  onChange={handleSearch} 
+                  placeholder="Search comments..." 
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-64"
+                />
+              </div>
+            </div>
+          </div>
+
+          {filteredComments.length <= 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-32 h-32 mb-6">
+                <img src="/delete.png" alt="No comments" className="w-full h-full object-contain opacity-50"/>
+              </div>
+              <p className="text-gray-500 text-lg">No comments found</p>
+              <p className="text-gray-400 text-sm mt-1">Try adjusting your search terms</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Research Navigation */}
+              <div className="bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <button className="flex items-center px-4 py-2 border border-teal-300 rounded-lg text-teal-700 hover:bg-teal-50 transition-colors">
+                    <i className="bi bi-arrow-left mr-2"></i>
+                    Previous
+                  </button>
+                  <button className="flex items-center px-4 py-2 border border-teal-300 rounded-lg text-teal-700 hover:bg-teal-50 transition-colors">
+                    Next
+                    <i className="bi bi-arrow-right ml-2"></i>
+                  </button>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-teal-100 rounded-lg">
+                    <i className="bi bi-file-text text-teal-600"></i>
+                  </div>
+                  <div>
+                    <h4 className="text-sm text-gray-600 font-medium">Current Research:</h4>
+                    <div className="text-lg font-bold text-gray-900">The Impact of AI on Modern Education</div>
+                  </div>
                 </div>
               </div>
-              <div className="text-base text-slate-600 p-2">
-                <div className="block">
-                  <span>
-                    {comment.comment}
-                  </span> 
-                  {comment.replies.map((reply, index) => (
-                     <div key={index} className="w-max border-l border-teal-600 py-2 px-5 ml-10 bg-slate-100 my-2">
-                      {reply}
+
+              {/* Comments List */}
+              <div className="space-y-4">
+                {filteredComments.map((comment) => (
+                  <div key={comment.id} className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    {/* Comment Header */}
+                    <div className="p-6 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full flex items-center justify-center">
+                            <i className="bi bi-person text-white text-lg"></i>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{comment.sender}</h3>
+                            <p className="text-sm text-gray-500">{timeAgo(comment.created_at)}</p>
+                          </div>
+                        </div>
+                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${getStatusStyle(comment.status)}`}>
+                          {comment.status}
+                        </span>
+                      </div>
                     </div>
-                  ))}
+
+                    {/* Comment Content */}
+                    <div className="p-6">
+                      <p className="text-gray-800 leading-relaxed mb-4">{comment.comment}</p>
+
+                      {/* Replies */}
+                      {comment.replies.length > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="font-medium text-gray-700 text-sm flex items-center">
+                            <i className="bi bi-chat-dots mr-2 text-teal-600"></i>
+                            Replies ({comment.replies.length})
+                          </h4>
+                          <div className="space-y-2">
+                            {comment.replies.map((reply, index) => (
+                              <div key={index} className="bg-gradient-to-r from-teal-50 to-emerald-50 border-l-4 border-teal-500 p-4 rounded-r-lg">
+                                <p className="text-gray-700 text-sm">{reply}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Reply Button */}
+                      <div className="flex justify-end mt-4">
+                        <button className="flex items-center px-4 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
+                          <i className="bi bi-reply mr-2"></i>
+                          Reply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                <div className="text-sm text-gray-500">
+                  Showing {filteredComments.length} comments
                 </div>
-                <div className="flex justify-end px-5">
-                  <button className="text-xs text-teal-500">Reply</button>
+                <div className="flex space-x-2">
+                  <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Previous
+                  </button>
+                  <button className="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                    1
+                  </button>
+                  <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    2
+                  </button>
+                  <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Next
+                  </button>
                 </div>
               </div>
             </div>
-            ))}
-            
-
-          </div>
+          )}
         </div>
       </div>
-       <div className="flex space-x-1 my-2 justify-self-end text-slate-500">
-          <button className="px-2 py-1 border border-slate-300 rounded-md text-sm">Previous</button>
-          <button className="px-3 py-1 border border-red-500 bg-red-400 text-white rounded-md text-sm">1</button>
-          <button className="px-3 py-1 border border-slate-300 rounded-md text-sm">2</button>
-          <button className="px-2 py-1 border border-slate-300 rounded-md text-sm">Next</button>
-        </div>
-        </>
-      )}
     </div>
   );
-}
+};
+
 export default CommentList;
