@@ -12,14 +12,15 @@ interface RootLayoutProps {
 
 const manipulateUrl = (url: string) => {
   // Remove the '/i/' prefix
-  if (url.startsWith('/i/')) {
-    url = url.replace('/i/', '');
-  } else if (url.startsWith('/w-page/')) {
-    url = url.replace('/w-page/', '');
+  if (url.startsWith('/auth/')) {
+    url = url.replace('/auth/', '');
+  } else if (url.startsWith('/~/')) {
+    url = url.replace('/~/', '');
   } else {
     url = "dashboard"; 
   }
 
+  url += " - Kamero Research Base";
   // Capitalize the first letter of the remaining word
   const capitalized = url.charAt(0).toUpperCase() + url.slice(1);
   return capitalized;
@@ -68,7 +69,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               {/* Content Container */}
               <div className="p-2">
                 {/* Page Content */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-[calc(100vh-12rem)]">
+                <div className="min-h-[calc(100vh-12rem)]">
                   <div className="p-4 lg:p-6">
                     {children}
                   </div>

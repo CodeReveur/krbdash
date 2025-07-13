@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface NavBarProps {
   onNavigate: (page: string) => void;
@@ -9,8 +9,8 @@ interface NavBarProps {
 interface UserInfo {
   id: number;
   username: string;
-  fullName: string;
-  role: string;
+  name: string;
+  email: string;
 }
 
 const NavBar = ({ onNavigate }: NavBarProps) => {
@@ -18,20 +18,24 @@ const NavBar = ({ onNavigate }: NavBarProps) => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       setCurrentPath(window.location.pathname);
       
       // Get user info from localStorage (adjust this based on your auth system)
-      const userInfoData = localStorage.getItem('userInfo');
-      if (userInfoData) {
+      const userInfoData = JSON.parse(localStorage.getItem('userSession') || '{}');
+
+      if (userInfoData && userInfoData.session_id != "") {
         try {
-          const parsedUserInfo = JSON.parse(userInfoData);
+          const parsedUserInfo = userInfoData;
           setUserInfo(parsedUserInfo);
         } catch (error) {
           console.error('Error parsing user info:', error);
         }
+      } else {
+        router.push("/auth/login");
       }
     }
   }, []);
@@ -80,16 +84,33 @@ const NavBar = ({ onNavigate }: NavBarProps) => {
 
   const menu = [
     { name: "Dashboard", url: "/", icon: "bi bi-grid" },
-    { name: "Researches", url: "/w-page/researches", icon: "bi bi-search" },
-    { name: "Comments", url: "/w-page/comments", icon: "bi bi-chat-dots" },
-    { name: "Requests", url: "/w-page/requests", icon: "bi bi-hourglass-split" },
+    { name: "Researches", url: "/~/researches", icon: "bi bi-search" },
+    { name: "Comments", url: "/~/comments", icon: "bi bi-chat-dots" },
+    { name: "Requests", url: "/~/requests", icon: "bi bi-hourglass-split" },
   ];
 
   const userActions = [
-    { name: "Account", url: "/w-page/account", icon: "bi bi-person-gear" },
-    { name: "Log out", url: "/w-page/account/logout", icon: "bi bi-box-arrow-left" },
+    { name: "Account", url: "/~/account", icon: "bi bi-person-gear" },
+    { name: "Log out", url: "/~/account/logout", icon: "bi bi-box-arrow-left" },
   ];
-
+  
+  const maskEmail = (email:string) => {
+    if (!email || !email.includes('@')) {
+      return email;
+    }
+    
+    const [localPart, domain] = email.split('@');
+    
+    if (localPart.length <= 3) {
+      // For very short local parts, show first char + ***
+      return localPart[0] + '***' + '@' + domain;
+    } else {
+      // Show first 3 chars + *** + last char before @
+      const firstPart = localPart.substring(0, 3);
+      const lastChar = localPart[localPart.length - 1];
+      return firstPart + '***' + lastChar + '@' + domain;
+    }
+  };
   return (
     <>
       {/* Toggle Button - Mobile Only */}
@@ -134,10 +155,10 @@ const NavBar = ({ onNavigate }: NavBarProps) => {
           <div className="flex-1 min-w-0">
             <p className="text-base text-white/60 font-medium">Welcome</p>
             <h3 className="text-xl font-bold text-white truncate">
-              {userInfo?.fullName || userInfo?.username || 'User'}
+              {userInfo?.name}
             </h3>
             <p className="text-sm text-teal-400 font-semibold truncate">
-              {userInfo?.role || 'Team Member'}
+              {maskEmail(String(userInfo?.email))}
             </p>
           </div>
         </div>

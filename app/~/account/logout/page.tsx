@@ -10,11 +10,11 @@ const Logout: React.FC = () => {
         const logoutUser = async () => {
             try {
                 // Retrieve the session from localStorage
-                const session = localStorage.getItem('studentSession');
+                const session = localStorage.getItem('userSession');
                 
                 if (!session) {
-                    localStorage.removeItem('studentSession');
-                    router.push('/'); // Redirect to home if no session found
+                    localStorage.removeItem('userSession');
+                    router.push('/auth/login'); // Redirect to home if no session found
                     window.location.reload;
                     return;
                 }
@@ -27,7 +27,7 @@ const Logout: React.FC = () => {
 
                 // If logout is successful, remove the session from local storage
                // if (response.status === 200) {
-                    localStorage.removeItem('studentSession');
+                    localStorage.removeItem('userSession');
                     localStorage.clear();
                   //  console.log(response.data.message); // Log the success message
                     router.push('/auth/login'); // Redirect to home page

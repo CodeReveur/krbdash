@@ -1,20 +1,53 @@
-
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import VerifyForm from "./forgot-password";
+import VerifyOtpForm from "./otp";
 import Preloader from "../app/buttonPreloader";
 import AlertNotification from "../app/notify";
-
 
 interface FormData {
   login: string;
   password: string;
 }
 
-const LoginForm = () => { 
+interface UserSession {
+  id: string;
+  name: string;
+  department_id: string;
+  profile: string;
+  email: string;
+  session_id?: string;
+  hashed_id?: string;
+  loginTime?: string;
+}
 
+// Session helper functions to use across your app
+export const getSession = (): UserSession | null => {
+  try {
+    const sessionStr = localStorage.getItem('userSession');
+    if (!sessionStr) return null;
+    return JSON.parse(sessionStr);
+  } catch (error) {
+    console.error('Error reading session:', error);
+    return null;
+  }
+};
+
+export const updateSession = (updates: Partial<UserSession>) => {
+  const currentSession = getSession();
+  if (!currentSession) return null;
+  
+  const updatedSession = { ...currentSession, ...updates };
+  localStorage.setItem('userSession', JSON.stringify(updatedSession));
+  return updatedSession;
+};
+
+export const clearSession = () => {
+  localStorage.removeItem('userSession');
+};
+
+const LoginForm = () => { 
   const [focus, setFocus] = useState<Record<string, boolean>>({});
   const [formData, setFormData] = useState<FormData>({
     login: "",
@@ -23,17 +56,21 @@ const LoginForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showOtpForm, setShowOtpForm] = useState(false);
+  const [userSession, setUserSession] = useState<any>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [hashedId, setHashedId] = useState<string>("");
   const router = useRouter();
 
-        useEffect(() => {
-          if (error || success) {
-            const timer = setTimeout(() => {
-              setError(null);
-              setSuccess(null);
-            }, 10000); // Hide after 4 seconds
-            return () => clearTimeout(timer);
-          }
-        }, [error, success]);
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError(null);
+        setSuccess(null);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
 
   const handleFocus = (field: string) =>
     setFocus((prev) => ({ ...prev, [field]: true }));
@@ -52,15 +89,11 @@ const LoginForm = () => {
     e.preventDefault();
     setLoading(true);
     
-  
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json", // Ensure JSON format
-          Accept: "application/json",
-        },
-        body: JSON.stringify(formData), // Convert form data to JSON
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
     
       if (!response.ok) {
@@ -69,114 +102,173 @@ const LoginForm = () => {
         throw new Error(`${errorText.message}`);
       }
     
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        setLoading(false);
-        throw new Error(`Unexpected response format: ${(await response.json()).message}`);
-      }
-    
       const data = await response.json();
-       setLoading(false);
-      setSuccess("Login successful");
-      setFormData({ login: "", password: "" });
-      // Update localStorage with the new session
-      localStorage.setItem('studentSession', JSON.stringify({
+      setLoading(false);
+      setSuccess(data.message);
+      
+      // Create session object with all necessary data
+      const sessionData: UserSession = {
         id: data.user.id,
         name: data.user.name,
-        session_id: data.user.session_id,
         department_id: data.user.department_id,
-        profile: data.user.profile
-    }));
+        profile: data.user.profile,
+        email: data.user.email,
+        session_id: "",
+        hashed_id: data.user.hashed_id || "",
+        loginTime: new Date().toISOString(),
+      };
+
+      // Store user session data
+      setUserSession(sessionData);
+      localStorage.setItem('userSession', JSON.stringify(sessionData));
+      
+      // Set the email and hashed ID for OTP component
+      setUserEmail(formData.login);
+      setHashedId(data.user.session_id || data.user.hashed_id || "");
+
+      // Show OTP form
+      setTimeout(() => {
+        setShowOtpForm(true);
+      }, 3000);
 
     } catch (error: any) {
       setLoading(false);
       setError(error.message);
     }
-    
   };
 
-  if(success?.includes('success')){
-    setTimeout(() => {
-     router.push('/');
-    }, 2000)
-   }
+  // Check if user successfully verified OTP
+  useEffect(() => {
+    // Check localStorage for successful OTP verification
+    const storedSession = getSession();
+    if (storedSession && showOtpForm) {
+      if (storedSession.session_id === hashedId) {
+       // router.push('/');
+      }
+    }
+  }, [showOtpForm, hashedId, router]);
 
   if(error?.includes("not verified")){
-     return <VerifyForm />
-   }
+          setTimeout(() => {
+            router.push("/auth/verify-account")
+          }, 3000);
+  }
+
+  // Show OTP form after successful login
+  if (showOtpForm) {
+    return <VerifyOtpForm 
+      hashed={hashedId}
+      email={userEmail}
+      type=""
+    />;
+  }
 
   return (
-    <div className="min-h-screen py-5 flex items-center justify-center bg-gradient-to-r from-blue-50 to-indigo-50">
-       {error && <AlertNotification message={error} type="error" />}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 via-cyan-50 to-sky-100 p-4">
+      {/* Animated Background Elements */}
+      {error && <AlertNotification message={error} type="error" />}
       {success && <AlertNotification message={success} type="success" />}
-    
-      <div className="w-full max-w-lg bg-white shadow-xl rounded-lg py-4">
-        {/* Logo */}
-        <div className="flex justify-center mb-4">
-          <div className="w-14 h-14 rounded-full shadow-lg shadow-teal-100 bg-indigo-100">
-            <img src="/logo.svg" alt="Logo" className="w-full h-full rounded-full object-cover" />
+
+      <div className="absolute top-10 left-10 w-72 h-72 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+      <div className="absolute bottom-20 right-10 w-72 h-72 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+      
+      {/* Glassmorphism Card */}
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-teal-100/50 overflow-hidden z-10 transition-all duration-500 hover:shadow-xl hover:border-teal-200">
+        
+        {/* Teal Gradient Header */}
+        <div className="bg-gradient-to-r from-teal-600 to-cyan-900 p-6 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg">
+              {/* Company Logo - Restored */}
+              <div className="bg-white p-2 rounded-full">
+                <img src="/logo.svg" alt="Company Logo" className="w-18 h-18" />
+              </div>
+            </div>
           </div>
+          <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
+          <p className="text-white/90 mt-1">Sign in to continue to your dashboard</p>
         </div>
 
-        {/* Welcome Message */}
-        <h2 className="text-center text-xl font-medium text-teal-600 mb-8 px-2">
-          Welcome back
-        </h2>
-
-        {/* Form */}
-        <form className="space-y-6 px-8" onSubmit={handleSubmit}>
-   
+        <div className="p-8">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {[
               { id: "login", label: "Email or phone", type: "text" },
               { id: "password", label: "Password", type: "password" },
             ].map((field) => (
               <div key={field.id} className="relative">
-                <label
-                  htmlFor={field.id}
-                  className={`absolute left-3 text-gray-500 transition-all duration-300 ${
-                    focus[field.id]
-                      ? "top-[-10px] text-sm bg-white px-1"
-                      : "top-2 text-base"
-                  }`}
-                >
-                  {field.label}
-                  <span className="text-red-500"> *</span>
-                </label>
                 <input
                   id={field.id}
                   type={field.type}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-teal-400 focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-white/90 rounded-lg border border-teal-100 focus:border-teal-400 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-all duration-300 text-gray-800 placeholder-gray-400"
                   onFocus={() => handleFocus(field.id)}
                   onBlur={(e) => handleBlur(field.id, e.target.value)}
                   value={(formData as any)[field.id]}
                   onChange={handleChange}
                   required
+                  placeholder=" "
                 />
+                <label
+                  htmlFor={field.id}
+                  className={`absolute left-4 text-gray-500 transition-all duration-300 pointer-events-none ${
+                    focus[field.id] || (formData as any)[field.id]
+                      ? "top-[-10px] text-xs bg-gradient-to-r from-teal-600 to-cyan-500 text-white px-2 py-0.5 rounded-md"
+                      : "top-3 text-base"
+                  }`}
+                >
+                  {field.label}
+                </label>
               </div>
             ))}
-          
-             {/* Submit Button */}
 
-           <div className="text-center flex justify-center">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full sm:w-[150px] flex items-center justify-center space-x-2 border border-teal-400 text-teal-500 py-2 rounded-md hover:bg-teal-100 transition-all duration-300"
-              >
-                {loading && <Preloader />}
-                Login
-              </button>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <input
+                  id="remember"
+                  type="checkbox"
+                  className="w-4 h-4 text-teal-600 bg-white border-gray-300 rounded focus:ring-teal-500"
+                />
+                <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+                  Remember me
+                </label>
+              </div>
+              <Link href="/auth/forgot-password" className="text-sm text-teal-600 hover:text-teal-700 transition-colors">
+                Forgot password?
+              </Link>
             </div>
-            <div className="relative flex flex-col justify-center space-y-1 text-center">
-              <Link href={"/auth/forgot-password"} className="text-sm text-teal-600">Forgot password?</Link>
-            </div>
-        </form>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-400 border-t border-teal-300 mt-6 py-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-teal-700 to-cyan-700 hover:from-teal-600 hover:to-cyan-600 text-white py-3 rounded-lg font-medium flex items-center justify-center space-x-2 shadow-lg hover:shadow-teal-200 transition-all duration-300"
+            >
+              {loading ? (
+                <Preloader />
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </form>
 
-        <p>&copy; {new Date().getFullYear()} Kamero Research Base. All rights reserved.</p>
-        </p>
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Don't have an account?{" "}
+              <Link href="/auth/register" className="text-teal-600 font-medium hover:text-teal-700 transition-colors">
+                Contact Sales
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-teal-50 p-4 text-center border-t border-teal-100">
+          <p className="text-xs text-gray-500">
+            &copy; {new Date().getFullYear()} Kamero Research Base. All rights reserved.
+          </p>
+        </div>
       </div>
     </div>
   );

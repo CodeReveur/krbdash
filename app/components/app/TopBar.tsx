@@ -9,8 +9,8 @@ interface TopBarProps {
 interface UserInfo {
   id: number;
   username: string;
-  fullName: string;
-  role: string;
+  name: string;
+  email: string;
 }
 
 const TopBar = ({ pageTitle }: TopBarProps) => {
@@ -41,7 +41,7 @@ const TopBar = ({ pageTitle }: TopBarProps) => {
   // Get user info
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const userInfoData = localStorage.getItem('userInfo');
+      const userInfoData = localStorage.getItem('userSession');
       if (userInfoData) {
         try {
           const parsedUserInfo = JSON.parse(userInfoData);
@@ -69,6 +69,24 @@ const TopBar = ({ pageTitle }: TopBarProps) => {
     return breadcrumbs;
   };
 
+  const maskEmail = (email:string) => {
+    if (!email || !email.includes('@')) {
+      return email;
+    }
+    
+    const [localPart, domain] = email.split('@');
+    
+    if (localPart.length <= 3) {
+      // For very short local parts, show first char + ***
+      return localPart[0] + '***' + '@' + domain;
+    } else {
+      // Show first 3 chars + *** + last char before @
+      const firstPart = localPart.substring(0, 3);
+      const lastChar = localPart[localPart.length - 1];
+      return firstPart + '***' + lastChar + '@' + domain;
+    }
+  };
+
   const breadcrumbs = generateBreadcrumbs();
 
   return (
@@ -86,9 +104,7 @@ const TopBar = ({ pageTitle }: TopBarProps) => {
               </div>
             ))}
           </div>
-          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 truncate">
-            {pageTitle}
-          </h1>
+          
         </div>
 
         {/* Center Section - Search */}
@@ -180,10 +196,10 @@ const TopBar = ({ pageTitle }: TopBarProps) => {
               </div>
               <div className="hidden lg:block text-left">
                 <p className="text-sm font-semibold text-gray-900 truncate max-w-32">
-                  {userInfo?.fullName || userInfo?.username || 'User'}
+                  {userInfo?.name || 'User'}
                 </p>
                 <p className="text-xs text-teal-600 truncate max-w-32">
-                  {userInfo?.role || 'Team Member'}
+                  {maskEmail(String(userInfo?.email)) || 'Team Member'}
                 </p>
               </div>
               <i className="bi bi-chevron-down text-gray-400 text-sm hidden lg:block"></i>
@@ -199,10 +215,10 @@ const TopBar = ({ pageTitle }: TopBarProps) => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900 truncate">
-                        {userInfo?.fullName || userInfo?.username || 'User'}
+                        {userInfo?.name || 'User'}
                       </p>
                       <p className="text-xs text-teal-600 truncate">
-                        {userInfo?.role || 'Team Member'}
+                        {userInfo?.email || 'Team Member'}
                       </p>
                     </div>
                   </div>
