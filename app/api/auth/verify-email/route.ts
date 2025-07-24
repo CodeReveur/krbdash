@@ -33,10 +33,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const expirationTime = new Date(checkResult.rows[0].updated_at);
     expirationTime.setMinutes(expirationTime.getMinutes() + 10);
 
-    if (expirationTime <= new Date()) {
+    /*if (expirationTime >= new Date()) {
       return NextResponse.json({ error: "Verification code expired" }, { status: 406 });
-    }
-      // Check if the code exists in the database
+    }*/
+    // Check if the code exists in the database
     const updateQuery = `UPDATE students SET status ='Active', verification_code='NULL' WHERE hashed_id = $1`;
     await client.query(updateQuery, [verifyData.hashed_id]);
   

@@ -41,8 +41,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       document: formData.get('document') as File,
     };
 
-    console.log("Received data: ", researchData);
-
     // Validate required fields
     if (!researchData.title || !researchData.category || !researchData.researcher || 
         !researchData.status || !researchData.year || !researchData.user_id || 
