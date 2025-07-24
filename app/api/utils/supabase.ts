@@ -11,8 +11,8 @@ export default async function uploadDocumentToSupabase(file: File, title: string
 
     // Upload file to Supabase Storage
     const { data, error } = await supabase.storage
-      .from("krb") // Replace with your Supabase bucket name
-      .upload(`institutions/researches/documents/${fileName}`, file, {
+      .from("research-documents") // Replace with your Supabase bucket name 
+      .upload(`materials/${fileName}`, file, {
         cacheControl: "3600",
         upsert: false, // Prevent overwriting existing files
       });
@@ -23,8 +23,8 @@ export default async function uploadDocumentToSupabase(file: File, title: string
 
     // Get the public URL of the uploaded document
     const { data: publicUrl } = supabase.storage
-      .from("krb")
-      .getPublicUrl(`institutions/researches/document/${fileName}`);
+      .from("research-documents") // Replace with your Supabase bucket name
+      .getPublicUrl(`materials/${fileName}`);
 
     return publicUrl.publicUrl; // Return the file's direct URL
   } catch (error: any) {
@@ -35,7 +35,7 @@ export default async function uploadDocumentToSupabase(file: File, title: string
 export async function deleteDocumentFromSupabase(filePath: string): Promise<void> {
   try {
     const { data, error } = await supabase.storage
-      .from("krb") // Replace with your Supabase bucket name
+      .from("research-documents") // Replace with your Supabase bucket name // Replace with your Supabase bucket name
       .remove([filePath]); // File path inside the bucket
 
     if (error) {

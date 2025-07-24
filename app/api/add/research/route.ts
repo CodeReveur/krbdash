@@ -51,13 +51,35 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Get user's department, school, and institution information
+    const userInfoResult = await client.query(
+      `SELECT 
+        s.department as department_id,
+        d.name as department,
+        d.school,
+        d.institution
+      FROM students s
+      JOIN departments d ON s.department = d.id::text
+      WHERE s.id = $1::integer`,
+      [parseInt(researchData.user_id)]
+    );
+
+    if (userInfoResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: "User department information not found" }, 
+        { status: 404 }
+      );
+    }
+
+    const userInfo = userInfoResult.rows[0];
+
     // Upload the document to Supabase
     const documentUrl = await uploadDocumentToSupabase(researchData.document, researchData.title);
     const doc_type = researchData.document.type;
     const approval_status = "Pending"; // Initial approval status
     const progress_status = researchData.status; // This is the research progress status (ongoing/completed/pending)
 
-    // Insert research into the database (without institution and school)
+    // Insert research into the database (with institution, school, and department)
     const result = await client.query(
       `INSERT INTO researches (
         title, 
@@ -69,11 +91,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         year, 
         abstract, 
         document_type, 
-        user_id, 
+        user_id,
+        department,
+        school,
+        institution,
         created_at, 
         updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW()) 
       RETURNING *`,
       [
         researchData.title, 
@@ -85,7 +110,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         researchData.year, 
         researchData.abstract, 
         doc_type, 
-        researchData.user_id
+        researchData.user_id,
+        userInfo.department, // department name
+        userInfo.school,     // school name
+        userInfo.institution // institution name
       ]
     );
     
@@ -117,7 +145,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.error("Error during Research addition:", error);
     return NextResponse.json(
       { 
-        message: "Researchaddition failed",
+        message: "Research addition failed",
         error: error instanceof Error ? error.message : "Unknown error occurred"
       },
       { status: 500 }
