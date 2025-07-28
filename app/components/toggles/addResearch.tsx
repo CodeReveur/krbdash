@@ -194,6 +194,24 @@ const AddResearch: React.FC<AddResearchProps> = ({ onClose = () => {} }) => {
         return false;
     }
   };
+    const maskFile = (email:string) => {
+    if (!email || !email.includes('@')) {
+      return email;
+    }
+    
+    const [localPart, domain] = email.split('.');
+    
+    if (localPart.length <= 3) {
+      // For very short local parts, show first char + ***
+      return localPart[0] + '***' + '.' + domain;
+    } else {
+      // Show first 3 chars + *** + last char before @
+      const firstPart = localPart.substring(0, 3);
+      const lastChar = localPart[localPart.length - 1];
+      return firstPart + '***' + lastChar + '.' + domain;
+    }
+  };
+
 
   return (
     <>
@@ -455,7 +473,7 @@ const AddResearch: React.FC<AddResearchProps> = ({ onClose = () => {} }) => {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-500 transition-all duration-300 group"
+                      className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-500 transition-all duration-300 group overflow-hidden"
                     >
                       <div className="flex flex-col items-center gap-3">
                         <div className="p-4 bg-teal-50 rounded-full group-hover:bg-teal-100 transition-colors">
@@ -466,8 +484,8 @@ const AddResearch: React.FC<AddResearchProps> = ({ onClose = () => {} }) => {
                           )}
                         </div>
                         <div>
-                          <p className="text-lg font-medium text-gray-700">
-                            {file ? file.name : "Click to upload document"}
+                          <p className="text-lg font-medium text-gray-700 truncate">
+                            {file ? maskFile(file.name) : "Click to upload document"}
                           </p>
                           <p className="text-sm text-gray-500">PDF, DOC, DOCX (Max 10MB)</p>
                         </div>

@@ -27,7 +27,7 @@ const NavBar = ({ onNavigate }: NavBarProps) => {
       // Get user info from localStorage (adjust this based on your auth system)
       const userInfoData = JSON.parse(localStorage.getItem('userSession') || '{}');
 
-      if (userInfoData && userInfoData.session_id != "") {
+      if (userInfoData && userInfoData.name != "") {
         try {
           const parsedUserInfo = userInfoData;
           setUserInfo(parsedUserInfo);

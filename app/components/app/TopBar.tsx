@@ -49,6 +49,9 @@ const TopBar = ({ pageTitle }: TopBarProps) => {
         } catch (error) {
           console.error('Error parsing user info:', error);
         }
+      } else {
+        // Redirect to login if no user info found
+        window.location.href = "/auth/login";
       }
     }
   }, []);
